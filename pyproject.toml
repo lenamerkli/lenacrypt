@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75.8.0", "wheel>=0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lenacrypt"
+version = "0.0.1"
+authors = [
+    { name = "Lena Merkli", email = "lena.merkli@protonmail.com" },
+]
+description = "lenacrypt is a cryptographic library for Python intended for communication. NOT STABLE yet"
+readme = "README.md"
+licenses = [{ text = "MIT License" }]
+requires-python = ">=3.13"
+keywords = ["crypto", "communication", "aes", "rsa"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/LenaMerkli/lenacrypt"
+"Bug Tracker" = "https://github.com/LenaMerkli/lenacrypt/issues"
