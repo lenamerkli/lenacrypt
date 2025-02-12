@@ -1,5 +1,6 @@
 import math
 import json
+from .rand import random_prime
 
 
 __all__ = [
@@ -12,6 +13,20 @@ class RSAkey:
         self.n = n
         self.e = e
         self.d = d
+
+    @classmethod
+    def generate(cls, length: int = 4096, miller_rounds: int = 32, max_retries: int = 10000000) -> 'RSAkey':
+        p = random_prime(length // 2, miller_rounds, max_retries)
+        q = p
+        while q == p:
+            q = random_prime(length // 2, miller_rounds, max_retries)
+        n = p * q
+        phi = (p - 1) * (q - 1)
+        e = random_prime(length // 2, miller_rounds, max_retries)
+        while math.gcd(e, phi) != 1:
+            e = random_prime(length // 2, miller_rounds, max_retries)
+        d = pow(e, -1, phi)
+        return RSAkey(n, e, d)
         
     def __str__(self) -> str:
         return f"RSAkey(n={self.n}, e={self.e}, d={self.d})"
@@ -36,20 +51,21 @@ class RSAkey:
         }
 
     def __len__(self) -> int:
-        return math.ceil(math.log2(max(self.n, self.e, self.d)))
+        return math.ceil(math.log2(self.n))
 
     @classmethod
     def from_dict(cls, d: dict) -> 'RSAkey':
         return RSAkey(**d)
 
+    def to_dict(self):
+        return {'e': self.e, 'd': self.d, 'n': self.n}
+
     @classmethod
     def from_json(cls, j: str) -> 'RSAkey':
         return RSAkey(**json.loads(j))
 
-    def to_json(self) -> str:
-        return json.dumps(self.__dict__())
+    def to_json(self, *args, **kwargs) -> str:
+        return json.dumps(self.__dict__(), *args, **kwargs)
 
-    @classmethod
-    def generate(cls, length: int) -> 'RSAkey':
-        pass
-
+    def to_list(self) -> list:
+        return [self.e, self.d, self.n]
