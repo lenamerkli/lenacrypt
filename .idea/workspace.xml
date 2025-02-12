@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="43b5b5aa-436c-46cc-8c42-d38d3676711f" name="Changes" comment="Add random prime generation">
+    <list default="true" id="43b5b5aa-436c-46cc-8c42-d38d3676711f" name="Changes" comment="Add RSA key generation and a few methods to the class.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lenacrypt/rsa.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lenacrypt/rsa.py" afterDir="false" />
     </list>
@@ -90,7 +90,7 @@
       <workItem from="1739278116755" duration="1835000" />
       <workItem from="1739280386803" duration="2274000" />
       <workItem from="1739346173285" duration="349000" />
-      <workItem from="1739346530884" duration="12000" />
+      <workItem from="1739346530884" duration="199000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <option name="closed" value="true" />
@@ -116,7 +116,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739280574344</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Add RSA key generation and a few methods to the class.">
+      <option name="closed" value="true" />
+      <created>1739346621634</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1739346621634</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -137,6 +145,7 @@
     <MESSAGE value="Initial commit" />
     <MESSAGE value="Initialize pypi project" />
     <MESSAGE value="Add random prime generation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add random prime generation" />
+    <MESSAGE value="Add RSA key generation and a few methods to the class." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add RSA key generation and a few methods to the class." />
   </component>
 </project>

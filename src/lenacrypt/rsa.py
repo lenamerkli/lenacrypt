@@ -15,14 +15,17 @@ class RSAkey:
         self.d = d
 
     @classmethod
-    def generate(cls, length: int = 4096, miller_rounds: int = 32, max_retries: int = 10000000) -> 'RSAkey':
+    def generate(
+            cls, length: int = 4096, e: int = None, miller_rounds: int = 32, max_retries: int = 10000000
+    ) -> 'RSAkey':
         p = random_prime(length // 2, miller_rounds, max_retries)
         q = p
         while q == p:
             q = random_prime(length // 2, miller_rounds, max_retries)
         n = p * q
         phi = (p - 1) * (q - 1)
-        e = random_prime(length // 2, miller_rounds, max_retries)
+        if e is None:
+            e = random_prime(length // 2, miller_rounds, max_retries)
         while math.gcd(e, phi) != 1:
             e = random_prime(length // 2, miller_rounds, max_retries)
         d = pow(e, -1, phi)
