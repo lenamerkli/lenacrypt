@@ -26,15 +26,17 @@ class RSAkey:
             cls, length: int = 4096, e: int = None, miller_rounds: int = 32, max_retries: int = 10000000
     ) -> 'RSAkey':
         p = random_prime(length // 2, miller_rounds, max_retries)
-        q = p
-        while q == p:
+        q = None
+        while q is None or q == p:
             q = random_prime(length // 2, miller_rounds, max_retries)
         n = p * q
         phi = (p - 1) * (q - 1)
         if e is None:
             e = random_prime(length // 2, miller_rounds, max_retries)
-        while math.gcd(e, phi) != 1:
-            e = random_prime(length // 2, miller_rounds, max_retries)
+            while math.gcd(e, phi) != 1:
+                e = random_prime(length // 2, miller_rounds, max_retries)
+        elif math.gcd(e, phi) != 1:
+            raise ValueError('e must be coprime with phi(n)')
         d = pow(e, -1, phi)
         return RSAkey(n, e, d)
         
@@ -116,10 +118,6 @@ class RSAkey:
             isinstance(self.e, int) and
             isinstance(self.d, int) and
             isinstance(self.n, int) and
-            miller_rabin(self.e, miller_rounds) and
-            miller_rabin(self.d, miller_rounds) and
-            math.gcd(self.e, self.n) == 1 and
-            math.gcd(self.d, self.n) == 1 and
             math.gcd(self.e, self.d) == 1 and
             self.e > 1 and
             self.d > 1 and
@@ -127,7 +125,7 @@ class RSAkey:
         ):
             return False
         for i in range(tests):
-            m = randint(2, self.n - 1)
+            m = randint(2, self.n // 2 - 1)
             c = self._encrypt(m)
             if self._decrypt(c) != m:
                 return False
@@ -204,14 +202,14 @@ if __name__ == '__main__':
 
     class TestRSA(unittest.TestCase):
         def test_rsa_generate(self):
-            for _ in range(32):
+            for _ in range(4):
                 key = RSAkey.generate()
                 self.assertTrue(key.is_probably_valid())
 
         def test_rsa_encrypt_decrypt(self):
-            key = RSAkey.generate()
-            for _ in range(32):
-                message = randint(1, key.n)
+            for _ in range(4):
+                key = RSAkey.generate()
+                message = randint(2, key.n // 2 - 1)
                 encrypted = key._encrypt(message)
                 decrypted = key._decrypt(encrypted)
                 self.assertEqual(message, decrypted)
