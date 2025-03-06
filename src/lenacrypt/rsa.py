@@ -1,7 +1,12 @@
 import math
 import json
-from .rand import random_prime, randint
-from .prime import miller_rabin
+
+try:
+    from .rand import random_prime, randint
+    from .prime import miller_rabin
+except ImportError:
+    from rand import random_prime, randint
+    from prime import miller_rabin
 
 
 __all__ = [
@@ -192,3 +197,23 @@ class RSApubkey(RSAkey):
             self.e > 1 and
             self.n > 2
         )
+
+
+if __name__ == '__main__':
+    import unittest
+
+    class TestRSA(unittest.TestCase):
+        def test_rsa_generate(self):
+            for _ in range(32):
+                key = RSAkey.generate()
+                self.assertTrue(key.is_probably_valid())
+
+        def test_rsa_encrypt_decrypt(self):
+            key = RSAkey.generate()
+            for _ in range(32):
+                message = randint(1, key.n)
+                encrypted = key._encrypt(message)
+                decrypted = key._decrypt(encrypted)
+                self.assertEqual(message, decrypted)
+
+    unittest.main()

@@ -1,5 +1,9 @@
 import secrets
-from .prime import miller_rabin
+
+try:
+    from .prime import miller_rabin
+except ImportError:
+    from prime import miller_rabin
 
 
 __all__ = [
@@ -34,3 +38,25 @@ def randint(a: int, b: int) -> int:
     :return: A random integer N such that a <= N <= b.
     """
     return secrets.randbelow(b - a + 1) + a
+
+
+if __name__ == '__main__':
+    import unittest
+
+    class TestRand(unittest.TestCase):
+        def test_random_prime(self):
+            for _ in range(32):
+                n = random_prime(1024)
+                self.assertIsInstance(n, int)
+                self.assertTrue(miller_rabin(n))
+                self.assertGreater(n, 2)
+                self.assertLess(n, 2 ** 1024)
+
+        def test_randint(self):
+            for _ in range(32):
+                n = randint(0, 100)
+                self.assertIsInstance(n, int)
+                self.assertGreaterEqual(n, 0)
+                self.assertLessEqual(n, 100)
+
+    unittest.main()
