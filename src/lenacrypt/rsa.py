@@ -139,8 +139,17 @@ class RSApubkey(RSAkey):
     def __str__(self) -> str:
         return f"RSApubkey(n={self.n}, e={self.e})"
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __bytes__(self):
+        return self.to_bytes()
+
     def __eq__(self, other) -> bool:
         return self.n == other.n and self.e == other.e
+
+    def __ne__(self, other) -> bool:
+        return not self == other
 
     def __hash__(self) -> int:
         return hash((self.n, self.e))
