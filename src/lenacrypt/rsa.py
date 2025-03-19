@@ -146,13 +146,13 @@ class RSApubkey(RSAkey):
         return hash((self.n, self.e))
 
     @classmethod
-    def from_bytes(cls, b: bytes) -> 'RSAkey':
+    def from_bytes(cls, b: bytes) -> 'RSApubkey':
         byte_values = b.split(b'\x00\xFF')
         int_values = [int.from_bytes(v.replace(b'\x00\x00', b'\x00'),
                                      'big', signed=False) for v in byte_values]
         if len(int_values) < 2:
             raise ValueError('Invalid RSA public key bytes.')
-        return RSAkey.from_list(int_values)
+        return RSApubkey.from_list(int_values)
 
     def to_bytes(self) -> bytes:
         return b'\x00'.join([
