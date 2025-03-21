@@ -26,6 +26,15 @@ class RSAkey:
     def generate(
             cls, length: int = 4096, e: int = None, miller_rounds: int = 32, max_retries: int = 10000000
     ) -> 'RSAkey':
+        """
+        Generate a random RSA key.
+
+        :param length: The length of the RSA modulus in bits.
+        :param e: The public exponent. If None, a random prime is chosen.
+        :param miller_rounds: The number of Miller-Rabin test rounds for primality testing.
+        :param max_retries: The maximum number of retries to find a suitable prime.
+        :return: An instance of RSAkey containing the generated RSA key.
+        """
         p = random_prime(length // 2, miller_rounds, max_retries)
         q = None
         while q is None or q == p:
@@ -71,6 +80,12 @@ class RSAkey:
 
     @classmethod
     def from_bytes(cls, b: bytes) -> 'RSAkey':
+        """
+        Deserialize an RSA key from bytes.
+
+        :param b: The bytes to deserialize from.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         byte_values = b.split(b'\x00\xFF')
         int_values = [int.from_bytes(v.replace(b'\x00\x00', b'\x00'),
                                      'big', signed=False) for v in byte_values]
@@ -79,6 +94,11 @@ class RSAkey:
         return RSAkey.from_list(int_values)
 
     def to_bytes(self) -> bytes:
+        """
+        Serialize an RSA key to bytes.
+
+        :return: The serialized bytes.
+        """
         return b'\x00'.join([
             self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False),
             self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False),
@@ -87,23 +107,58 @@ class RSAkey:
 
     @classmethod
     def from_dict(cls, d: dict) -> 'RSAkey':
+        """
+        Deserialize an RSA key from a dictionary.
+
+        :param d: The dictionary to deserialize from. It must contain the keys 'e', 'd', and 'n'.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         return RSAkey(**d)
 
     def to_dict(self):
+        """
+        Serialize an RSA key to a dictionary.
+
+        :return: The serialized dictionary.
+        """
         return {'e': self.e, 'd': self.d, 'n': self.n}
 
     @classmethod
     def from_json(cls, j: str) -> 'RSAkey':
+        """
+        Deserialize an RSA key from JSON.
+
+        :param j: The JSON string to deserialize from.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         return RSAkey(**json.loads(j))
 
     def to_json(self, *args, **kwargs) -> str:
+        """
+        Serialize an RSA key to JSON.
+
+        :return: The serialized JSON string.
+        """
         return json.dumps(self.__dict__(), *args, **kwargs)
 
     @classmethod
     def from_list(cls, l: list[int]) -> 'RSAkey':
+        """
+        Deserialize an RSA key from a list of integers.
+
+        :param l: The list of integers to deserialize from. It must contain at least 3 integers.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
+        if len(l) < 3:
+            raise ValueError('Invalid RSA key list.')
         return RSAkey(l[0], l[1], l[2])
 
     def to_list(self) -> list[int]:
+        """
+        Serialize an RSA key to a list of integers.
+
+        :return: The serialized list of integers.
+        """
         return [self.e, self.d, self.n]
 
     def _encrypt(self, m: int) -> int:
@@ -117,6 +172,7 @@ class RSAkey:
     def simple_int_encrypt(self, m: int, disable_warning: bool = False) -> int:
         """
         NOT RECOMMENDED - Encrypts an integer.
+
         :param m: The message to encrypt as an integer. Needs to be larger than 1 and less than n.
         :param disable_warning: Disable the warning message that this function should not be used unless you know what you are doing.
         :return: The cipher as an integer.
@@ -128,12 +184,23 @@ class RSAkey:
     def simple_int_decrypt(self, c: int) -> int:
         """
         NOT RECOMMENDED - Decrypts an integer.
+
         :param c: The cipher to decrypt as an integer.
         :return: The message as an integer.
         """
         return self._decrypt(c)
 
-    def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32) -> bool:
+    def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32, disable_warning: bool = False) -> bool:
+        """
+        Experimental function to check if an RSA key is probably valid.
+
+        :param tests: The number of tests to run. Defaults to 32.
+        :param miller_rounds: The number of Miller-Rabin rounds to perform. Defaults to 32.
+        :param disable_warning: Disable the warning message that this function has a high false positive rate. Defaults to False.
+        :return: True if the key is probably valid, False otherwise.
+        """
+        if not disable_warning:
+            warnings.warn('This function has a high false positive rate.')
         if not (
             isinstance(self.e, int) and
             isinstance(self.d, int) and
@@ -176,6 +243,12 @@ class RSApubkey(RSAkey):
 
     @classmethod
     def from_bytes(cls, b: bytes) -> 'RSApubkey':
+        """
+        Deserialize an RSA key from bytes.
+
+        :param b: The bytes to deserialize from.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         byte_values = b.split(b'\x00\xFF')
         int_values = [int.from_bytes(v.replace(b'\x00\x00', b'\x00'),
                                      'big', signed=False) for v in byte_values]
@@ -184,6 +257,11 @@ class RSApubkey(RSAkey):
         return RSApubkey.from_list(int_values)
 
     def to_bytes(self) -> bytes:
+        """
+        Serialize an RSA key to bytes.
+
+        :return: The serialized bytes.
+        """
         return b'\x00'.join([
             self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False),
             self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False),
@@ -191,23 +269,56 @@ class RSApubkey(RSAkey):
 
     @classmethod
     def from_dict(cls, d: dict) -> 'RSApubkey':
+        """
+        Deserialize an RSA key from a dictionary.
+
+        :param d: The dictionary to deserialize from. It must contain the keys 'e', 'd', and 'n'.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         return cls(d['n'], d['e'])
 
     def to_dict(self):
+        """
+        Serialize an RSA key to a dictionary.
+
+        :return: The serialized dictionary.
+        """
         return {'e': self.e, 'n': self.n}
 
     @classmethod
     def from_json(cls, j: str) -> 'RSApubkey':
+        """
+        Deserialize an RSA key from JSON.
+
+        :param j: The JSON string to deserialize from.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         return cls(**json.loads(j))
 
     def to_json(self, *args, **kwargs) -> str:
+        """
+        Serialize an RSA key to JSON.
+
+        :return: The serialized JSON string.
+        """
         return json.dumps(self.__dict__(), *args, **kwargs)
 
     @classmethod
     def from_list(cls, l: list[int]) -> 'RSApubkey':
+        """
+        Deserialize an RSA key from a list of integers.
+
+        :param l: The list of integers to deserialize from. It must contain at least 3 integers.
+        :return: An instance of RSAkey containing the deserialized RSA key.
+        """
         return cls(l[0], l[1])
 
     def to_list(self) -> list[int]:
+        """
+        Serialize an RSA key to a list of integers.
+
+        :return: The serialized list of integers.
+        """
         return [self.e, self.n]
 
     def _decrypt(self, c: int) -> int:
@@ -215,13 +326,24 @@ class RSApubkey(RSAkey):
 
     def simple_int_decrypt(self, c: int) -> int:
         """
-        NOT POSSIBLE with a public key
+        NOT POSSIBLE with a public key. Raises a syntax error.
+
         :param c: not used
         :return: a syntax error
         """
         return self._decrypt(c)
 
-    def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32) -> bool:
+    def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32, disable_warning: bool = False) -> bool:
+        """
+        Experimental function to check if an RSA key is probably valid.
+
+        :param tests: The number of tests to run. Defaults to 32.
+        :param miller_rounds: The number of Miller-Rabin rounds to perform. Defaults to 32.
+        :param disable_warning: Disable the warning message that this function has a high false positive rate. Defaults to False.
+        :return: True if the key is probably valid, False otherwise.
+        """
+        if not disable_warning:
+            warnings.warn('This function has a high false positive rate.')
         return (
             isinstance(self.e, int) and
             isinstance(self.n, int) and
