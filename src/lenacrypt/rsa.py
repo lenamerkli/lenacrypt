@@ -223,6 +223,21 @@ class RSApubkey(RSAkey):
     def __init__(self, n: int, e: int):
         super().__init__(n, e, 0)
 
+    @classmethod
+    def generate(
+            cls, length: int = 4096, e: int = None, miller_rounds: int = 32, max_retries: int = 10000000
+    ) -> 'RSAkey':
+        """
+        NOT POSSIBLE with a public key. Use `RSAkey.generate(**kwargs)` instead. Raises a syntax error.
+
+        :param length: not used
+        :param e: not used
+        :param miller_rounds: not used
+        :param max_retries: not used
+        :return: a syntax error
+        """
+        raise SyntaxError('Generating only the public key part is not supported.')
+
     def __str__(self) -> str:
         return f"RSApubkey(n={self.n}, e={self.e})"
 
