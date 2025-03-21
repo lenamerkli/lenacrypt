@@ -1,5 +1,6 @@
 import math
 import json
+import warnings
 
 try:
     from .rand import random_prime, randint
@@ -113,6 +114,25 @@ class RSAkey:
     def _decrypt(self, c: int) -> int:
         return pow(c, self.d, self.n)
 
+    def simple_int_encrypt(self, m: int, disable_warning: bool = False) -> int:
+        """
+        NOT RECOMMENDED - Encrypts an integer.
+        :param m: The message to encrypt as an integer. Needs to be larger than 1 and less than n.
+        :param disable_warning: Disable the warning message that this function should not be used unless you know what you are doing.
+        :return: The cipher as an integer.
+        """
+        if not disable_warning:
+            warnings.warn('This function should not be used unless you know what you are doing.')
+        return self._encrypt(m)
+
+    def simple_int_decrypt(self, c: int) -> int:
+        """
+        NOT RECOMMENDED - Decrypts an integer.
+        :param c: The cipher to decrypt as an integer.
+        :return: The message as an integer.
+        """
+        return self._decrypt(c)
+
     def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32) -> bool:
         if not (
             isinstance(self.e, int) and
@@ -191,7 +211,15 @@ class RSApubkey(RSAkey):
         return [self.e, self.n]
 
     def _decrypt(self, c: int) -> int:
-        raise NotImplementedError('Cannot decrypt with a public key.')
+        raise SyntaxError('Cannot decrypt with a public key.')
+
+    def simple_int_decrypt(self, c: int) -> int:
+        """
+        NOT POSSIBLE with a public key
+        :param c: not used
+        :return: a syntax error
+        """
+        return self._decrypt(c)
 
     def is_probably_valid(self, tests: int = 32, miller_rounds: int = 32) -> bool:
         return (
