@@ -14,11 +14,11 @@ def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
         type_ = 'bytes'
         value = obj
     elif isinstance(obj, int):
-        type_ = 'int'
         byte_order = 'big'
         if 'byte_order' in kwargs:
             byte_order = kwargs['byte_order']
         value = obj.to_bytes((obj.bit_length() + 7) // 8, byte_order)
+        type_ = 'int:' + byte_order
     elif isinstance(obj, bool):
         type_ = 'bool'
         if obj:
