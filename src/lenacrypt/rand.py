@@ -40,6 +40,39 @@ def randint(a: int, b: int) -> int:
     return secrets.randbelow(b - a + 1) + a
 
 
+def randbytes(n: int) -> bytes:
+    """
+    Return n random bytes.
+    :param n: The number of bytes to generate.
+    :return: n random bytes.
+    """
+    return secrets.token_bytes(n)
+
+
+def randfloat(a: float, b: float) -> float:
+    """
+    Return a random float N such that a <= N <= b.
+    :param a: The lower bound.
+    :param b: The upper bound.
+    :return: A random float N such that a <= N <= b.
+    """
+    """
+    Return a random float N such that a <= N <= b.
+    :param a: The lower bound.
+    :param b: The upper bound.
+    :return: A random float N such that a <= N <= b.
+    """
+    return a + (b - a) * randfloat01()
+
+
+def randfloat01() -> float:
+    """
+    Return a random float N such that 0 <= N <= 1.
+    :return: A random float N such that 0 <= N <= 1.
+    """
+    return int.from_bytes(randbytes(7), 'big', signed=False) / (2 ** 56 - 1)
+
+
 if __name__ == '__main__':
     import unittest
 
