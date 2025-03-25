@@ -56,12 +56,6 @@ def randfloat(a: float, b: float) -> float:
     :param b: The upper bound.
     :return: A random float N such that a <= N <= b.
     """
-    """
-    Return a random float N such that a <= N <= b.
-    :param a: The lower bound.
-    :param b: The upper bound.
-    :return: A random float N such that a <= N <= b.
-    """
     return a + (b - a) * randfloat01()
 
 
