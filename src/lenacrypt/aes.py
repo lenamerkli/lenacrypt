@@ -78,10 +78,10 @@ def expand_key(key):
     :return: The expanded key.
     """
     valid_key_sizes = (16, 24, 32)
-    if len(key) not in valid_key_sizes:
-        raise ValueError(f"Invalid key size {len(key)}, must be one of {valid_key_sizes}")
-    num_rounds = {16: 10, 24: 12, 32: 14}[len(key)]
     key_byte_length = len(key)
+    if key_byte_length not in valid_key_sizes:
+        raise ValueError(f"Invalid key size {key_byte_length}, must be one of {valid_key_sizes}")
+    num_rounds = {16: 10, 24: 12, 32: 14}[key_byte_length]
     expanded_key = list(key)
     i = 1
     while len(expanded_key) < (num_rounds + 1) * key_byte_length:
