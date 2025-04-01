@@ -50,7 +50,7 @@ INV_MIX_COLUMNS_MATRIX = [
 ]
 
 
-def rotate(word):
+def rotate(word: bytes) -> bytes:
     """
     Rotate a 4-byte word to the left by 1 byte.
 
@@ -60,7 +60,7 @@ def rotate(word):
     return word[1:] + word[:1]
 
 
-def gmul(a, b):
+def gmul(a: int, b: int) -> int:
     """
     Multiply two elements of GF(2^8).
 
@@ -81,7 +81,7 @@ def gmul(a, b):
 
 
 
-def schedule_core(word, i):
+def schedule_core(word: bytes, i: int) -> bytes:
     """
     Perform the core key expansion operation.
 
@@ -95,7 +95,7 @@ def schedule_core(word, i):
     return word
 
 
-def expand_key(key):
+def expand_key(key: bytes) -> bytes:
     """
     Expand a 16, 24, or 32-byte key to a 176, 208, or 240-byte key.
 
@@ -122,32 +122,41 @@ def expand_key(key):
     return bytes(expanded_key)[:lengths[key_byte_length]]
 
 
-def add_round_key(state, round_key):
+def add_round_key(state: list[list[int]], round_key: list[list[int]]) -> None:
     """
-    XOR the state with the round key.
+    XOR the state with the round key. Modifies the state in-place.
+
+    :param state: The state matrix.
+    :param round_key: The round key.
     """
     for i in range(4):
         for j in range(4):
             state[i][j] ^= round_key[i][j]
 
-def sub_bytes(state):
+def sub_bytes(state: list[list[int]]) -> None:
     """
-    Apply the S-box to each byte of the state.
+    Apply the S-box to each byte of the state. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(4):
         for j in range(4):
             state[i][j] = SBOX[state[i][j]]
 
-def shift_rows(state):
+def shift_rows(state: list[list[int]]) -> None:
     """
-    Shift the rows of the state matrix.
+    Shift the rows of the state matrix. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(1, 4):
         state[i] = state[i][i:] + state[i][:i]
 
-def mix_columns(state):
+def mix_columns(state: list[list[int]]) -> None:
     """
-    Mix the columns of the state matrix.
+    Mix the columns of the state matrix. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(4):
         t = [
@@ -159,9 +168,11 @@ def mix_columns(state):
         for j in range(4):
             state[j][i] = t[j]
 
-def inv_mix_columns(state):
+def inv_mix_columns(state: list[list[int]]) -> None:
     """
-    Inverse of mix_columns.
+    Inverse of mix_columns. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(4):
         t = [
@@ -173,17 +184,21 @@ def inv_mix_columns(state):
         for j in range(4):
             state[j][i] = t[j]
 
-def inv_sub_bytes(state):
+def inv_sub_bytes(state: list[list[int]]) -> None:
     """
-    Inverse of sub_bytes.
+    Inverse of sub_bytes. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(4):
         for j in range(4):
             state[i][j] = INV_SBOX[state[i][j]]
 
-def inv_shift_rows(state):
+def inv_shift_rows(state: list[list[int]]) -> None:
     """
-    Inverse of shift_rows.
+    Inverse of shift_rows. Modifies the state in-place.
+
+    :param state: The state matrix.
     """
     for i in range(1, 4):
         state[i] = state[i][-i:] + state[i][:-i]
@@ -199,9 +214,11 @@ class AES:
         self.key = key
         self.key_schedule = expand_key(key)
 
-    def encrypt(self, plaintext: bytes):
+    def encrypt(self, plaintext: bytes) -> bytes:
         """
         Encrypt the plaintext using AES.
+        :param plaintext: The plaintext to encrypt.
+        :return: The encrypted ciphertext.
         """
         if len(plaintext) != 16:
             raise ValueError('Plaintext must be 16 bytes long.')
@@ -219,9 +236,11 @@ class AES:
         add_round_key(state, round_keys[-1])
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
-    def decrypt(self, ciphertext):
+    def decrypt(self, ciphertext: bytes) -> bytes:
         """
         Decrypt the ciphertext using AES.
+        :param ciphertext: The ciphertext to decrypt.
+        :return: The plaintext as bytes.
         """
         if len(ciphertext) != 16:
             raise ValueError('Ciphertext must be 16 bytes long.')
@@ -245,6 +264,7 @@ if __name__ == '__main__':
 
     class TestAES(unittest.TestCase):
         def test_aes_key_expansion(self):
+            # Test vectors from https://www.samiam.org/key-schedule.html
             test_vectors = [
                 b'I \xe2\x99\xa5 RadioGatun\xda\xbd}v\x7f\x9d/\x17\x1b\xf4@Pz\x805>\x15+\xcf\xacj\xb6\xe0\xbbqB\xa0\xeb\x0b\xc2\x95\xd54\x01\xcc\x87^\xb7,</\xf5\x8c\xd7$7\x19\x02\xa6\xd5\xbb\xb1\xf8b\x97\x8d\xd7\x97\x1bZ\xf3\xa0\x02XV\xa2\xd1\xbc\xae\xc0F1yW]k\x8a\xf7_3\x1em\x12\xc2\xb0\xadT\xf3\xc9\xfa\t\x98C\rV\xab\x89\xdcp\xd89q$+\xf0\x8b-\xb3\xb3\x86{\x18M\xfd\xdd\xb5t\x8c\xf9\x9e\x84\x07\xd4-7\x81\xaf5Z\x84K/.\x08\xb2\xb1\xaa\x0ff\x9c\x9d\x8e\xc9\xa9uY\x98q[Q*\xc0\xf1^L\\l\xd0\x85\xf5',
                 b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\xd6\xaat\xfd\xd2\xafr\xfa\xda\xa6x\xf1\xd6\xabv\xfe\xb6\x92\xcf\x0bd=\xbd\xf1\xbe\x9b\xc5\x00h0\xb3\xfe\xb6\xfftN\xd2\xc2\xc9\xbflY\x0c\xbf\x04i\xbfAG\xf7\xf7\xbc\x955>\x03\xf9l2\xbc\xfd\x05\x8d\xfd<\xaa\xa3\xe8\xa9\x9f\x9d\xebP\xf3\xafW\xad\xf6"\xaa^9\x0f}\xf7\xa6\x92\x96\xa7U=\xc1\n\xa3\x1fk\x14\xf9p\x1a\xe3_\xe2\x8cD\n\xdfMN\xa9\xc0&GC\x875\xa4\x1ce\xb9\xe0\x16\xba\xf4\xae\xbfz\xd2T\x992\xd1\xf0\x85Wh\x10\x93\xed\x9c\xbe,\x97N\x13\x11\x1d\x7f\xe3\x94J\x17\xf3\x07\xa7\x8bM+0\xc5',
