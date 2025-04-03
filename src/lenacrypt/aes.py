@@ -34,7 +34,7 @@ RCON = [
 ]
 
 
-def rotate(word: bytes) -> bytes:
+def rotate(word: list[int]) -> list[int]:
     """
     Rotate a 4-byte word to the left by 1 byte.
 
@@ -65,7 +65,7 @@ def gmul(a: int, b: int) -> int:
 
 
 
-def schedule_core(word: bytes, i: int) -> bytes:
+def schedule_core(word: list[int], i: int) -> bytes:
     """
     Perform the core key expansion operation.
 
