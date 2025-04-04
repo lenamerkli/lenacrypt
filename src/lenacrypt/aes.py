@@ -34,6 +34,10 @@ RCON = [
 ]
 
 
+def debug_log_state(state: list[list[int]], step: str) -> None:
+    print(bytes([state[i][j] for i in range(4) for j in range(4)]).hex() + f" [{step}]")
+
+
 def rotate(word: list[int]) -> list[int]:
     """
     Rotate a 4-byte word to the left by 1 byte.
@@ -133,8 +137,9 @@ def shift_rows(state: list[list[int]]) -> None:
 
     :param state: The state matrix.
     """
-    for i in range(1, 4):
-        state[i] = state[i][i:] + state[i][:i]
+    state[1] = [state[1][-1]] + state[1][:-1]
+    state[2] = state[2][-2:] + state[2][:-2]
+    state[3] = state[3][-3:] + state[3][:-3]
 
 def mix_columns(state: list[list[int]]) -> None:
     """
@@ -143,14 +148,15 @@ def mix_columns(state: list[list[int]]) -> None:
     :param state: The state matrix.
     """
     for i in range(4):
-        t = [
-            gmul(state[0][i], 2) ^ gmul(state[1][i], 3) ^ state[2][i] ^ state[3][i],
-            state[0][i] ^ gmul(state[1][i], 2) ^ gmul(state[2][i], 3) ^ state[3][i],
-            state[0][i] ^ state[1][i] ^ gmul(state[2][i], 2) ^ gmul(state[3][i], 3),
-            gmul(state[0][i], 3) ^ state[1][i] ^ state[2][i] ^ gmul(state[3][i], 2)
-        ]
-        for j in range(4):
-            state[j][i] = t[j]
+        s0 = state[0][i]
+        s1 = state[1][i]
+        s2 = state[2][i]
+        s3 = state[3][i]
+
+        state[0][i] = gmul(s0, 2) ^ gmul(s1, 3) ^ s2 ^ s3
+        state[1][i] = s0 ^ gmul(s1, 2) ^ gmul(s2, 3) ^ s3
+        state[2][i] = s0 ^ s1 ^ gmul(s2, 2) ^ gmul(s3, 3)
+        state[3][i] = gmul(s0, 3) ^ s1 ^ s2 ^ gmul(s3, 2)
 
 def inv_mix_columns(state: list[list[int]]) -> None:
     """
@@ -159,14 +165,15 @@ def inv_mix_columns(state: list[list[int]]) -> None:
     :param state: The state matrix.
     """
     for i in range(4):
-        t = [
-            gmul(state[0][i], 14) ^ gmul(state[1][i], 11) ^ gmul(state[2][i], 13) ^ gmul(state[3][i], 9),
-            gmul(state[0][i], 9) ^ gmul(state[1][i], 14) ^ gmul(state[2][i], 11) ^ gmul(state[3][i], 13),
-            gmul(state[0][i], 13) ^ gmul(state[1][i], 9) ^ gmul(state[2][i], 14) ^ gmul(state[3][i], 11),
-            gmul(state[0][i], 11) ^ gmul(state[1][i], 13) ^ gmul(state[2][i], 9) ^ gmul(state[3][i], 14)
-        ]
-        for j in range(4):
-            state[j][i] = t[j]
+        s0 = state[0][i]
+        s1 = state[1][i]
+        s2 = state[2][i]
+        s3 = state[3][i]
+
+        state[0][i] = gmul(s0, 0x0e) ^ gmul(s1, 0x0b) ^ gmul(s2, 0x0d) ^ gmul(s3, 0x09)
+        state[1][i] = gmul(s0, 0x09) ^ gmul(s1, 0x0e) ^ gmul(s2, 0x0b) ^ gmul(s3, 0x0d)
+        state[2][i] = gmul(s0, 0x0d) ^ gmul(s1, 0x09) ^ gmul(s2, 0x0e) ^ gmul(s3, 0x0b)
+        state[3][i] = gmul(s0, 0x0b) ^ gmul(s1, 0x0d) ^ gmul(s2, 0x09) ^ gmul(s3, 0x0e)
 
 def inv_sub_bytes(state: list[list[int]]) -> None:
     """
@@ -184,8 +191,9 @@ def inv_shift_rows(state: list[list[int]]) -> None:
 
     :param state: The state matrix.
     """
-    for i in range(1, 4):
-        state[i] = state[i][-i:] + state[i][:-i]
+    state[1] = state[1][1:] + state[1][:1]
+    state[2] = state[2][2:] + state[2][:2]
+    state[3] = state[3][3:] + state[3][:3]
 
 
 class AES:
@@ -209,15 +217,28 @@ class AES:
         state = [list(plaintext[i:i + 4]) for i in range(0, 16, 4)]
         round_keys = [self.key_schedule[i:i + 16] for i in range(0, len(self.key_schedule), 16)]
         round_keys = [[list(round_keys[i][j:j + 4]) for j in range(0, 16, 4)] for i in range(len(round_keys))]
+        # debug_log_state(state, '0 - input')
         add_round_key(state, round_keys[0])
+        # debug_log_state(round_keys[0], '0 - round key')
+        round_ = 0
         for round_ in range(1, len(round_keys) - 1):
+            # debug_log_state(state, f"{round_} - start")
             sub_bytes(state)
+            # debug_log_state(state, f"{round_} - sub bytes")
             shift_rows(state)
+            # debug_log_state(state, f"{round_} - shift rows")
             mix_columns(state)
+            # debug_log_state(state, f"{round_} - mix columns")
             add_round_key(state, round_keys[round_])
+            # debug_log_state(round_keys[round_], f"{round_} - round key")
+        # debug_log_state(state, f"{round_ + 1} - start")
         sub_bytes(state)
+        # debug_log_state(state, f"{round_ + 1} - sub bytes")
         shift_rows(state)
+        # debug_log_state(state, f"{round_ + 1} - shift rows")
         add_round_key(state, round_keys[-1])
+        # debug_log_state(round_keys[-1], f"{round_ + 1} - round key")
+        # debug_log_state(state, f"{round_ + 1} - output")
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
     def decrypt(self, ciphertext: bytes) -> bytes:
