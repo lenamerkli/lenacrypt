@@ -68,7 +68,6 @@ def gmul(a: int, b: int) -> int:
     return p & 0xff
 
 
-
 def schedule_core(word: list[int], i: int) -> bytes:
     """
     Perform the core key expansion operation.
@@ -121,6 +120,7 @@ def add_round_key(state: list[list[int]], round_key: list[list[int]]) -> None:
         for j in range(4):
             state[i][j] ^= round_key[i][j]
 
+
 def sub_bytes(state: list[list[int]]) -> None:
     """
     Apply the S-box to each byte of the state. Modifies the state in-place.
@@ -131,6 +131,7 @@ def sub_bytes(state: list[list[int]]) -> None:
         for j in range(4):
             state[i][j] = SBOX[state[i][j]]
 
+
 def shift_rows(state: list[list[int]]) -> None:
     """
     Shift the rows of the state matrix. Modifies the state in-place.
@@ -140,6 +141,7 @@ def shift_rows(state: list[list[int]]) -> None:
     state[1] = [state[1][-1]] + state[1][:-1]
     state[2] = state[2][-2:] + state[2][:-2]
     state[3] = state[3][-3:] + state[3][:-3]
+
 
 def mix_columns(state: list[list[int]]) -> None:
     """
@@ -158,6 +160,7 @@ def mix_columns(state: list[list[int]]) -> None:
         state[2][i] = s0 ^ s1 ^ gmul(s2, 2) ^ gmul(s3, 3)
         state[3][i] = gmul(s0, 3) ^ s1 ^ s2 ^ gmul(s3, 2)
 
+
 def inv_mix_columns(state: list[list[int]]) -> None:
     """
     Inverse of mix_columns. Modifies the state in-place.
@@ -175,6 +178,7 @@ def inv_mix_columns(state: list[list[int]]) -> None:
         state[2][i] = gmul(s0, 0x0d) ^ gmul(s1, 0x09) ^ gmul(s2, 0x0e) ^ gmul(s3, 0x0b)
         state[3][i] = gmul(s0, 0x0b) ^ gmul(s1, 0x0d) ^ gmul(s2, 0x09) ^ gmul(s3, 0x0e)
 
+
 def inv_sub_bytes(state: list[list[int]]) -> None:
     """
     Inverse of sub_bytes. Modifies the state in-place.
@@ -184,6 +188,7 @@ def inv_sub_bytes(state: list[list[int]]) -> None:
     for i in range(4):
         for j in range(4):
             state[i][j] = INV_SBOX[state[i][j]]
+
 
 def inv_shift_rows(state: list[list[int]]) -> None:
     """
@@ -220,7 +225,7 @@ class AES:
         # debug_log_state(state, '0 - input')
         add_round_key(state, round_keys[0])
         # debug_log_state(round_keys[0], '0 - round key')
-        round_ = 0
+        # round_ = 0
         for round_ in range(1, len(round_keys) - 1):
             # debug_log_state(state, f"{round_} - start")
             sub_bytes(state)
