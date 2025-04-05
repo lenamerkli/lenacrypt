@@ -33,3 +33,43 @@ def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
         return value
     return type_.encode('utf-8') + b'\x00' + value
 
+
+def deserialize(b: bytes) -> t.Any:
+    type_end = b.index(b'\x00')
+    type_ = b[:type_end].decode('utf-8')
+    value = b[type_end + 1:]
+    if type_.startswith('str:'):
+        encoding = type_.split(':')[1]
+        return value.decode(encoding)
+    elif type_ == 'bytes':
+        return value
+    elif type_.startswith('int:'):
+        byte_order = type_.split(':')[1]
+        if byte_order not in ('big', 'little'):
+            raise ValueError(f'Unsupported byte order: {byte_order}')
+        return int.from_bytes(value, byte_order)
+    elif type_ == 'bool':
+        return value != b'\x00'
+    else:
+        raise NotImplementedError(f'Unsupported type: {type_}')
+
+
+if __name__ == '__main__':
+    import unittest
+
+    class TestSerialize(unittest.TestCase):
+        def test_serialization(self):
+            test_objects = [
+                'Hello, world!',
+                b'Hello, world!',
+                42,
+                True,
+                False,
+                0b01010101,
+            ]
+            for obj in test_objects:
+                serialized = serialize(obj)
+                deserialized = deserialize(serialized)
+                self.assertEqual(obj, deserialized)
+
+    unittest.main()
