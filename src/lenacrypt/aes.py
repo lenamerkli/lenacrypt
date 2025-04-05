@@ -268,6 +268,29 @@ class AES:
         add_round_key(state, round_keys[0])
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
+    def __str__(self):
+        return f"AES(key=bytes.fromhex('{self.key.hex()}'))"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __bytes__(self):
+        return self.key
+
+    def __eq__(self, other):
+        if isinstance(other, AES):
+            return self.key == other.key
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.key)
+
+    def __copy__(self):
+        return AES(self.key)
+
 
 if __name__ == '__main__':
     import unittest
