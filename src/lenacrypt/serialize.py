@@ -1,6 +1,18 @@
 import typing as t
 
 
+__all__ = [
+    'serialize',
+    'deserialize',
+    'SUPPORTED_TYPES',
+]
+
+
+SUPPORTED_TYPES = [
+    str, bytes, int, bool,
+]
+
+
 def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
     type_: str
     value: bytes
@@ -34,7 +46,9 @@ def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
     return type_.encode('utf-8') + b'\x00' + value
 
 
-def deserialize(b: bytes) -> t.Any:
+def deserialize(b: bytes, value_only: bool = False) -> t.Any:
+    if value_only:
+        return b.decode('utf-8')
     type_end = b.index(b'\x00')
     type_ = b[:type_end].decode('utf-8')
     value = b[type_end + 1:]
@@ -47,7 +61,7 @@ def deserialize(b: bytes) -> t.Any:
         byte_order = type_.split(':')[1]
         if byte_order not in ('big', 'little'):
             raise ValueError(f'Unsupported byte order: {byte_order}')
-        return int.from_bytes(value, byte_order)
+        return int.from_bytes(value, byte_order)  # noqa
     elif type_ == 'bool':
         return value != b'\x00'
     else:
