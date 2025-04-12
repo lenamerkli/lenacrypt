@@ -1,7 +1,7 @@
 try:
-    from .rand import randint
+    from .rand import randint, randbytes
 except ImportError:
-    from rand import randint
+    from rand import randint, randbytes
 
 
 __all__ = [
@@ -208,8 +208,16 @@ class AES:
             key = bytes([randint(0, 255) for _ in range(32)])
         if len(key) not in [16, 24, 32]:
             raise ValueError('Key must be 16, 24, or 32 bytes long.')
-        self.key = key
-        self.key_schedule = expand_key(key)
+        self._key = key
+        self._key_schedule = expand_key(key)
+
+    @classmethod
+    def random(cls):
+        """
+        Create a new AES instance with a random 256-bit key.
+        :return: A new AES instance.
+        """
+        return cls(randbytes(32))
 
     def encrypt(self, plaintext: bytes) -> bytes:
         """
@@ -220,7 +228,7 @@ class AES:
         if len(plaintext) != 16:
             raise ValueError('Plaintext must be 16 bytes long.')
         state = [list(plaintext[i:i + 4]) for i in range(0, 16, 4)]
-        round_keys = [self.key_schedule[i:i + 16] for i in range(0, len(self.key_schedule), 16)]
+        round_keys = [self._key_schedule[i:i + 16] for i in range(0, len(self._key_schedule), 16)]
         round_keys = [[list(round_keys[i][j:j + 4]) for j in range(0, 16, 4)] for i in range(len(round_keys))]
         # debug_log_state(state, '0 - input')
         add_round_key(state, round_keys[0])
@@ -255,7 +263,7 @@ class AES:
         if len(ciphertext) != 16:
             raise ValueError('Ciphertext must be 16 bytes long.')
         state = [list(ciphertext[i:i + 4]) for i in range(0, 16, 4)]
-        round_keys = [self.key_schedule[i:i + 16] for i in range(0, len(self.key_schedule), 16)]
+        round_keys = [self._key_schedule[i:i + 16] for i in range(0, len(self._key_schedule), 16)]
         round_keys = [[list(round_keys[i][j:j + 4]) for j in range(0, 16, 4)] for i in range(len(round_keys))]
         add_round_key(state, round_keys[-1])
         inv_shift_rows(state)
@@ -268,28 +276,37 @@ class AES:
         add_round_key(state, round_keys[0])
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
+    @property
+    def _key(self) -> bytes:
+        return self._key
+
+    @_key.setter
+    def _key(self, value: bytes) -> None:
+        self._key = value
+        self._key_schedule = expand_key(value)
+
     def __str__(self):
-        return f"AES(key=bytes.fromhex('{self.key.hex()}'))"
+        return f"AES(key=bytes.fromhex('{self._key.hex()}'))"
 
     def __repr__(self):
         return self.__str__()
 
     def __bytes__(self):
-        return self.key
+        return self._key
 
     def __eq__(self, other):
         if isinstance(other, AES):
-            return self.key == other.key
+            return self._key == other._key
         return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.key)
+        return hash(self._key)
 
     def __copy__(self):
-        return AES(self.key)
+        return AES(self._key)
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ except ImportError:
 __all__ = [
     'randint',
     'random_prime',
+    'randbytes',
 ]
 
 
