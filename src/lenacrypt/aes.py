@@ -309,6 +309,113 @@ class AES:
         return AES(self._key)
 
 
+class AesExt:
+    """
+    A custom AES counter mode. Only use each key once.
+    """
+
+    def __init__(self, key: bytes):
+        self._set_key(key)
+
+    @classmethod
+    def random(cls):
+        """
+        Create a new AES instance with a random key.
+        :return: A new AES instance.
+        """
+        return cls(randbytes(48))
+
+    @staticmethod
+    def pad(plaintext: bytes) -> bytes:
+        padding_length = 16 - (len(plaintext) % 16)
+        return plaintext + bytes([padding_length] * padding_length)
+
+    @staticmethod
+    def unpad(padded_plaintext: bytes) -> bytes:
+        padding_length = padded_plaintext[-1]
+        if padding_length > 16 or padding_length == 0:
+            raise ValueError("Invalid padding")
+        for i in range(1, padding_length):
+            if padded_plaintext[-1 - i] != padding_length:
+                raise ValueError("Invalid padding")
+        return padded_plaintext[:-padding_length]
+
+    def encrypt_block(self, plaintext: bytes, index: int) -> bytes:
+        """
+        Encrypt a single 16 byte block
+        :param plaintext: The 16 byte block to encrypt
+        :param index: The index of the block
+        :return: The ciphertext
+        """
+        counter = ((int.from_bytes(self._counter, 'big') + index) % 2 ** (16 * 8)).to_bytes(16, 'big')
+        block_key = self._aes.encrypt(counter)
+        return bytes([a ^ b for a, b in zip(block_key, plaintext)])
+
+    def decrypt_block(self, ciphertext: bytes, index: int) -> bytes:
+        """
+        Decrypt a single 16 byte block
+        :param ciphertext: The 16 byte block to decrypt
+        :param index: The index of the block
+        :return: The plaintext
+        """
+        return self.encrypt_block(ciphertext, index)
+
+    def encrypt(self, plaintext: bytes) -> bytes:
+        """
+        Encrypt the plaintext using AES with non-standard counter mode.
+        :param plaintext: The plaintext to encrypt.
+        :return: The ciphertext as bytes.
+        """
+        plaintext = self.pad(plaintext)
+        return b''.join([self.encrypt_block(plaintext[i:i + 16], i // 16) for i in range(0, len(plaintext), 16)])
+
+    def decrypt(self, ciphertext: bytes) -> bytes:
+        """
+        Decrypt the ciphertext using AES with non-standard counter mode.
+        :param ciphertext: The ciphertext to decrypt.
+        :return: The plaintext as bytes.
+        """
+        plaintext = b''.join([self.decrypt_block(ciphertext[i:i + 16], i // 16) for i in range(0, len(ciphertext), 16)])
+        return self.unpad(plaintext)
+
+    def _set_key(self, value: bytes) -> None:
+        if not isinstance(value, bytes):
+            raise TypeError('key must be bytes')
+        if len(value) != 48:
+            raise ValueError('key must be 48 bytes long')
+        self._key = value[:32]
+        self._aes = AES(self._key)
+        self._counter = value[32:]
+
+    @property
+    def key(self) -> bytes:
+        return self._key + self._counter
+
+    @key.setter
+    def key(self, value: bytes) -> None:
+        self._set_key(value)
+
+    def __str__(self):
+        return f"AesExt(key=bytes.fromhex('{self._key.hex()}'))"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __bytes__(self):
+        return self._key
+
+    def __eq__(self, other):
+        if isinstance(other, AesExt):
+            return self._key == other._key
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self._key)
+
+
 if __name__ == '__main__':
     import unittest
 
@@ -330,6 +437,14 @@ if __name__ == '__main__':
                 key = bytes([randint(0, 255) for _ in range(32)])
                 message = bytes([randint(0, 255) for _ in range(16)])
                 aes = AES(key)
+                encrypted = aes.encrypt(message)
+                decrypted = aes.decrypt(encrypted)
+                self.assertEqual(message, decrypted)
+
+        def test_aes_ext_encrypt_decrypt(self):
+            for _ in range(4):
+                aes = AesExt.random()
+                message = randbytes(randint(20, 100))
                 encrypted = aes.encrypt(message)
                 decrypted = aes.decrypt(encrypted)
                 self.assertEqual(message, decrypted)
