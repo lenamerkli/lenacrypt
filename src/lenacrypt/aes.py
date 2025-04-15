@@ -204,12 +204,9 @@ def inv_shift_rows(state: list[list[int]]) -> None:
 class AES:
 
     def __init__(self, key: bytes = None):
-        if key is None:
-            key = bytes([randint(0, 255) for _ in range(32)])
-        if len(key) not in [16, 24, 32]:
-            raise ValueError('Key must be 16, 24, or 32 bytes long.')
-        self._key = key
-        self._key_schedule = expand_key(key)
+        self._key = b''
+        self._key_schedule = b''
+        self._set_key(key)
 
     @classmethod
     def random(cls):
@@ -276,14 +273,21 @@ class AES:
         add_round_key(state, round_keys[0])
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
-    @property
-    def _key(self) -> bytes:
-        return self._key
-
-    @_key.setter
-    def _key(self, value: bytes) -> None:
+    def _set_key(self, value: bytes) -> None:
+        if not isinstance(value, bytes):
+            raise TypeError('key must be bytes')
+        if len(value) not in [16, 24, 32]:
+            raise ValueError('Key must be 16, 24, or 32 bytes long.')
         self._key = value
         self._key_schedule = expand_key(value)
+
+    @property
+    def key(self) -> bytes:
+        return self._key
+
+    @key.setter
+    def key(self, value: bytes) -> None:
+        self._set_key(value)
 
     def __str__(self):
         return f"AES(key=bytes.fromhex('{self._key.hex()}'))"
@@ -315,6 +319,9 @@ class AesExt:
     """
 
     def __init__(self, key: bytes):
+        self._key = b''
+        self._aes = None
+        self._counter = b''
         self._set_key(key)
 
     @classmethod
