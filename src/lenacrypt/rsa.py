@@ -87,7 +87,7 @@ class RSAkey:
         :return: An instance of RSAkey containing the deserialized RSA key.
         """
         byte_values = b.split(b'\x00\xFF')
-        int_values = [int.from_bytes(v.replace(b'\x00\x00', b'\x00'),
+        int_values = [int.from_bytes(v.replace(b'\x00\x01', b'\x00'),
                                      'big', signed=False) for v in byte_values]
         if len(int_values) < 3:
             raise ValueError('Invalid RSA key bytes.')
@@ -99,10 +99,10 @@ class RSAkey:
 
         :return: The serialized bytes.
         """
-        return b'\x00'.join([
-            self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False),
-            self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False),
-            self.d.to_bytes((self.d.bit_length() + 7) // 8, 'big', signed=False)
+        return b'\x00\xFF'.join([
+            self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False).replace(b'\x00', b'\x00\x01'),
+            self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False).replace(b'\x00', b'\x00\x01'),
+            self.d.to_bytes((self.d.bit_length() + 7) // 8, 'big', signed=False).replace(b'\x00', b'\x00\x01')
         ])
 
     @classmethod
@@ -265,7 +265,7 @@ class RSApubkey(RSAkey):
         :return: An instance of RSAkey containing the deserialized RSA key.
         """
         byte_values = b.split(b'\x00\xFF')
-        int_values = [int.from_bytes(v.replace(b'\x00\x00', b'\x00'),
+        int_values = [int.from_bytes(v.replace(b'\x00\x01', b'\x00'),
                                      'big', signed=False) for v in byte_values]
         if len(int_values) < 2:
             raise ValueError('Invalid RSA public key bytes.')
@@ -277,9 +277,9 @@ class RSApubkey(RSAkey):
 
         :return: The serialized bytes.
         """
-        return b'\x00'.join([
-            self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False),
-            self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False),
+        return b'\x00\xFF'.join([
+            self.n.to_bytes((self.n.bit_length() + 7) // 8, 'big', signed=False).replace(b'\x00', b'\x00\x01'),
+            self.e.to_bytes((self.e.bit_length() + 7) // 8, 'big', signed=False).replace(b'\x00', b'\x00\x01'),
         ])
 
     @classmethod
