@@ -6,6 +6,7 @@ except ImportError:
 
 __all__ = [
     'AES',
+    'AesExt',
     'INV_SBOX',
     'RCON',
     'SBOX',
@@ -32,10 +33,6 @@ RCON = [
     0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54, 108, 216, 171, 77, 154, 47, 94, 188, 99, 198, 151, 53, 106, 212, 179, 125,
     250, 239, 197, 145, 57,
 ]
-
-
-def debug_log_state(state: list[list[int]], step: str) -> None:
-    print(bytes([state[i][j] for i in range(4) for j in range(4)]).hex() + f" [{step}]")
 
 
 def rotate(word: list[int]) -> list[int]:
@@ -227,28 +224,15 @@ class AES:
         state = [list(plaintext[i:i + 4]) for i in range(0, 16, 4)]
         round_keys = [self._key_schedule[i:i + 16] for i in range(0, len(self._key_schedule), 16)]
         round_keys = [[list(round_keys[i][j:j + 4]) for j in range(0, 16, 4)] for i in range(len(round_keys))]
-        # debug_log_state(state, '0 - input')
         add_round_key(state, round_keys[0])
-        # debug_log_state(round_keys[0], '0 - round key')
-        # round_ = 0
         for round_ in range(1, len(round_keys) - 1):
-            # debug_log_state(state, f"{round_} - start")
             sub_bytes(state)
-            # debug_log_state(state, f"{round_} - sub bytes")
             shift_rows(state)
-            # debug_log_state(state, f"{round_} - shift rows")
             mix_columns(state)
-            # debug_log_state(state, f"{round_} - mix columns")
             add_round_key(state, round_keys[round_])
-            # debug_log_state(round_keys[round_], f"{round_} - round key")
-        # debug_log_state(state, f"{round_ + 1} - start")
         sub_bytes(state)
-        # debug_log_state(state, f"{round_ + 1} - sub bytes")
         shift_rows(state)
-        # debug_log_state(state, f"{round_ + 1} - shift rows")
         add_round_key(state, round_keys[-1])
-        # debug_log_state(round_keys[-1], f"{round_ + 1} - round key")
-        # debug_log_state(state, f"{round_ + 1} - output")
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
     def decrypt(self, ciphertext: bytes) -> bytes:
@@ -315,7 +299,7 @@ class AES:
 
 class AesExt:
     """
-    A custom AES counter mode. Only use each key once.
+    A custom AES counter-mode. Only use each key once.
     """
 
     def __init__(self, key: bytes):
@@ -327,18 +311,28 @@ class AesExt:
     @classmethod
     def random(cls):
         """
-        Create a new AES instance with a random key.
-        :return: A new AES instance.
+        Create a new AesExt instance with a random key.
+        :return: A new AesExt instance.
         """
         return cls(randbytes(48))
 
     @staticmethod
     def pad(plaintext: bytes) -> bytes:
+        """
+        Pad a plaintext to be a multiple of 16 bytes.
+        :param plaintext: The plaintext to pad.
+        :return: The padded plaintext.
+        """
         padding_length = 16 - (len(plaintext) % 16)
         return plaintext + bytes([padding_length] * padding_length)
 
     @staticmethod
     def unpad(padded_plaintext: bytes) -> bytes:
+        """
+        Unpad a padded plaintext.
+        :param padded_plaintext: The padded plaintext to unpad.
+        :return: The unpadded plaintext.
+        """
         padding_length = padded_plaintext[-1]
         if padding_length > 16 or padding_length == 0:
             raise ValueError("Invalid padding")
@@ -349,8 +343,8 @@ class AesExt:
 
     def encrypt_block(self, plaintext: bytes, index: int) -> bytes:
         """
-        Encrypt a single 16 byte block
-        :param plaintext: The 16 byte block to encrypt
+        Encrypt a single 16-byte block
+        :param plaintext: The 16-byte block to encrypt
         :param index: The index of the block
         :return: The ciphertext
         """
@@ -369,7 +363,7 @@ class AesExt:
 
     def encrypt(self, plaintext: bytes) -> bytes:
         """
-        Encrypt the plaintext using AES with non-standard counter mode.
+        Encrypt the plaintext using AES with non-standard counter-mode.
         :param plaintext: The plaintext to encrypt.
         :return: The ciphertext as bytes.
         """
@@ -378,7 +372,7 @@ class AesExt:
 
     def decrypt(self, ciphertext: bytes) -> bytes:
         """
-        Decrypt the ciphertext using AES with non-standard counter mode.
+        Decrypt the ciphertext using AES with non-standard counter-mode.
         :param ciphertext: The ciphertext to decrypt.
         :return: The plaintext as bytes.
         """

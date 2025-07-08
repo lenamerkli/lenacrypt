@@ -14,6 +14,17 @@ SUPPORTED_TYPES = [
 
 
 def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
+    """
+    Serialize an object to bytes. Currently supports the following types:
+    - str
+    - bytes
+    - int
+    - bool
+    :param obj: The object to serialize.
+    :param value_only: If True, only the value is returned (without the type).
+    :param kwargs: Additional keyword arguments.
+    :return: The serialized bytes.
+    """
     type_: str
     value: bytes
     if isinstance(obj, str):
@@ -47,6 +58,12 @@ def serialize(obj: t.Any, value_only: bool = False, **kwargs) -> bytes:
 
 
 def deserialize(b: bytes, value_only: bool = False) -> t.Any:
+    """
+    Deserialize bytes to an object. Supports the same types as serialize().
+    :param b: The bytes to deserialize.
+    :param value_only: If True, only the value is returned (without the type).
+    :return: The deserialized object.
+    """
     if value_only:
         return b.decode('utf-8')
     type_end = b.index(b'\x00')
