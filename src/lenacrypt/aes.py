@@ -277,11 +277,11 @@ class AES:
         return bytes([state[i][j] for i in range(4) for j in range(4)])
 
     @property
-    def _key(self) -> bytes:
+    def key(self) -> bytes:
         return self._key
 
-    @_key.setter
-    def _key(self, value: bytes) -> None:
+    @key.setter
+    def key(self, value: bytes) -> None:
         self._key = value
         self._key_schedule = expand_key(value)
 
